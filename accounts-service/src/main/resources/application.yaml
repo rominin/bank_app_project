@@ -1,0 +1,27 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: accounts-service
+  cloud:
+    consul:
+      config:
+        enabled: true
+        prefix: config
+        defaultContext: application
+        format: yaml
+  config:
+    import: "consul:"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health ,  refresh
+  endpoint:
+    health:
+      show-details: always
+logging:
+  level:
+    org.springframework.cloud.consul: DEBUG

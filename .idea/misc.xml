@@ -5,6 +5,13 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/accounts-service/pom.xml" />
+        <option value="$PROJECT_DIR$/cash-service/pom.xml" />
+        <option value="$PROJECT_DIR$/transfer-service/pom.xml" />
+        <option value="$PROJECT_DIR$/exchange-service/pom.xml" />
+        <option value="$PROJECT_DIR$/exchange-generator-service/pom.xml" />
+        <option value="$PROJECT_DIR$/blocker-service/pom.xml" />
+        <option value="$PROJECT_DIR$/notification-service/pom.xml" />
       </list>
     </option>
   </component>
