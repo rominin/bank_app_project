@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>api-gateway</module>
         <module>front-ui</module>
         <module>accounts-service</module>
         <module>cash-service</module>
