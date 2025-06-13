@@ -14,6 +14,19 @@ spring:
   config:
     import: "consul:"
 
+  security:
+    oauth2:
+      client:
+        registration:
+          exchange-generator-service:
+            authorizationGrantType: client_credentials
+            provider: keycloak
+            client-id: exchange-generator-service_m2m
+            client-secret: juV1s9b0KlrXQfs5QoQAjhsTnItkToxw
+        provider:
+          keycloak:
+            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+
 management:
   endpoints:
     web:
@@ -25,3 +38,7 @@ management:
 logging:
   level:
     org.springframework.cloud.consul: DEBUG
+
+# todo: put property into consul
+exchange-service:
+  url: http://localhost:8090/exchange/ping # -> http://localhost:8095/ping

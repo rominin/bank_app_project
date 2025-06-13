@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: api-gateway
+  config:
+    import: "consul:"
   cloud:
     consul:
       config:
@@ -11,8 +13,6 @@ spring:
         prefix: config
         defaultContext: application
         format: yaml
-  config:
-    import: "consul:"
     gateway:
       mvc:
         routes:
