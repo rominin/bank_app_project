@@ -20,6 +20,29 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/bank-app
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bank_db
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    schemas: accounts_schema
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+    sql:
+      init:
+        platform: postgres
+
 management:
   endpoints:
     web:

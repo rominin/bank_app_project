@@ -28,17 +28,17 @@ services:
     # chmod +x init-consul.sh
     entrypoint: /init-consul.sh
 
-#  db:
-#    image: postgres:15
-#    container_name: postgres-for-local
-#    environment:
-#      POSTGRES_DB: bank_db
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
-#
-#volumes:
-#  postgres_data:
+  db:
+    image: postgres:15
+    container_name: postgres-for-local
+    environment:
+      POSTGRES_DB: bank_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
