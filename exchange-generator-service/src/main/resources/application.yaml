@@ -27,6 +27,22 @@ spring:
           keycloak:
             token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      sendRateToExchangeServiceBreaker:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+
+  retry:
+    instances:
+      sendRateToExchangeServiceRetry:
+        max-attempts: 3
+        wait-duration: 1s
+
 management:
   endpoints:
     web:

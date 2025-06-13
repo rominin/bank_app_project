@@ -1,5 +1,7 @@
 package ru.practicum.java.exchangegeneratorservice.client;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,8 @@ public class ExchangeClient {
     private final OAuth2AuthorizedClientManager authorizedClientManager;
     private final RestTemplate restTemplate;
 
+    @Retry(name = "sendRateToExchangeServiceRetry", fallbackMethod = "fallbackPing")
+    @CircuitBreaker(name = "sendRateToExchangeServiceBreaker", fallbackMethod = "fallbackPing")
     public void pingExchangeService() {
         String token = getAccessToken();
 
@@ -42,6 +46,10 @@ public class ExchangeClient {
         return Optional.ofNullable(authorizedClientManager.authorize(request))
                 .map(client -> client.getAccessToken().getTokenValue())
                 .orElseThrow(() -> new IllegalStateException("Didn't manage to retrieve access token"));
+    }
+
+    public void fallbackPing(Throwable ex) {
+        log.warn("Some issues occurred + ", ex.getMessage());
     }
 
 }
