@@ -41,4 +41,4 @@ logging:
 
 # todo: put property into consul
 exchange-service:
-  url: http://localhost:8090/exchange/ping # -> http://localhost:8095/ping
+  url: http://api-gateway/exchange/ping
