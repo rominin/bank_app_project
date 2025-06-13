@@ -14,7 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
-public class SecurityConfig {
+public class OAuth2ClientCredentialsSecurityConfig {
+    // this class is for m2m oauth2 client credentials flow (as resource server)
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

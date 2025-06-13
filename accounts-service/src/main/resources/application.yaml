@@ -39,9 +39,9 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
-    sql:
-      init:
-        platform: postgres
+  sql:
+    init:
+      platform: postgres
 
 management:
   endpoints:

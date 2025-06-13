@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "users", schema = "accounts_schema")
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
