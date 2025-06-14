@@ -17,13 +17,14 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-@Order(1)
 public class OAuth2ClientCredentialsSecurityConfig {
     // this class is for m2m oauth2 client credentials flow (as resource server)
 
     @Bean
+    @Order(1)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                .securityMatcher("/actuator/**", "/ping")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().hasAuthority("ROLE_can-access-accounts")

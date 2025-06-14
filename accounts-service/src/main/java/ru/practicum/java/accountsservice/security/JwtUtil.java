@@ -45,10 +45,10 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return Jwts.parser()
-                .setSigningKey(secret.getBytes(StandardCharsets.UTF_8))
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject();
     }
 

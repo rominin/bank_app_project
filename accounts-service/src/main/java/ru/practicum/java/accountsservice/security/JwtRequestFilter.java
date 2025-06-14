@@ -8,14 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.practicum.java.accountsservice.entity.User;
 import ru.practicum.java.accountsservice.service.UserService;
 
 import java.io.IOException;
 
-@Component
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
@@ -27,6 +25,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        System.out.println("JwtRequestFilter TRIGGERED on: " + request.getRequestURI());
 
         final String authHeader = request.getHeader("Authorization");
 

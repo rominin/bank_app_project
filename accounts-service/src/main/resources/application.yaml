@@ -43,6 +43,11 @@ spring:
     init:
       platform: postgres
 
+security:
+  jwt:
+    secret: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
+    expiration-minutes: 60
+
 management:
   endpoints:
     web:
