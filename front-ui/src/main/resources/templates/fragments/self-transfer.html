@@ -1,4 +1,36 @@
 <div th:fragment="selfTransfer">
     <h2>Перевод между своими счетами</h2>
-    <p>Здесь будет форма для перевода средств между своими счетами</p>
+
+    <form th:action="@{/home/transfer}" method="post">
+        <input type="hidden" name="userId" th:value="${userId}" />
+
+        <label for="fromAccount">Счёт списания:</label>
+        <select id="fromAccount" name="fromAccountId" required>
+            <option th:each="account : ${accounts}"
+                    th:value="${account.id}"
+                    th:text="${account.currency + ' (' + account.balance + ')'}">
+            </option>
+        </select>
+
+        <label for="toAccount">Счёт зачисления:</label>
+        <select id="toAccount" name="toAccountId" required>
+            <option th:each="account : ${accounts}"
+                    th:value="${account.id}"
+                    th:text="${account.currency + ' (' + account.balance + ')'}">
+            </option>
+        </select>
+
+        <label for="amount">Сумма:</label>
+        <input type="number" name="amount" id="amount" min="0.01" step="0.01" required/>
+
+        <button type="submit">Перевести</button>
+    </form>
+
+    <div th:if="${selfTransferSuccess}" style="color:green;">
+        <p th:text="${selfTransferSuccess}"></p>
+    </div>
+
+    <div th:if="${selfTransferError}" style="color:red;">
+        <p th:text="${selfTransferError}"></p>
+    </div>
 </div>

@@ -18,9 +18,5 @@
         <section th:replace="fragments/exchange-rates :: exchangeRates"></section>
     </div>
 
-    <div sec:authorize="isAnonymous()">
-        <p>Пожалуйста, <a th:href="@{/login}">войдите в систему</a>, чтобы получить доступ к функциональности.</p>
-    </div>
-
 </main>
 </html>

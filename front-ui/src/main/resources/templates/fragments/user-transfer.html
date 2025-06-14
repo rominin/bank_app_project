@@ -1,4 +1,60 @@
 <div th:fragment="userTransfer">
   <h2>Перевод другому пользователю</h2>
-  <p>Здесь будет форма перевода средств другому пользователю</p>
+
+  <form th:action="@{/home}" method="get">
+    <div>
+      <label for="fromAccountId">Ваш счёт:</label>
+      <select id="fromAccountId" name="fromAccountId" required>
+        <option th:each="account : ${accounts}"
+                th:value="${account.id}"
+                th:selected="${account.id} == ${fromAccountId}"
+                th:text="${account.currency + ' (' + account.balance + ')'}">
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label for="recipientUsername">Имя получателя:</label>
+      <input type="text" id="recipientUsername" name="recipientUsername"
+             th:value="${recipientUsername}" required />
+    </div>
+
+    <button type="submit">Найти счета</button>
+  </form>
+
+  <div th:if="${recipientAccounts != null}">
+    <hr/>
+    <form th:action="@{/home/transferToUser}" method="post">
+      <input type="hidden" name="fromAccountId" th:value="${fromAccountId}" />
+      <div>
+        <label for="toAccountId">Счёт получателя:</label>
+        <select id="toAccountId" name="toAccountId" required>
+          <option th:each="acc : ${recipientAccounts}"
+                  th:value="${acc.id}"
+                  th:text="${acc.currency}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label for="amount">Сумма:</label>
+        <input type="number" name="amount" step="0.01" min="0.01" required />
+      </div>
+
+      <button type="submit">Перевести</button>
+    </form>
+  </div>
+
+  <!-- Сообщения -->
+  <div th:if="${recipientError}" style="color:red;">
+    <p th:text="${recipientError}"></p>
+  </div>
+
+  <div th:if="${transferToUserError}" style="color:red;">
+    <p th:text="${transferToUserError}"></p>
+  </div>
+
+  <div th:if="${transferToUserSuccess}" style="color:green;">
+    <p th:text="${transferToUserSuccess}"></p>
+  </div>
 </div>

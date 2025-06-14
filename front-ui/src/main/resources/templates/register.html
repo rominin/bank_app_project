@@ -35,3 +35,34 @@
 <a th:href="@{/login}">Уже есть аккаунт? Войти</a>
 </body>
 </html>
+
+<div id="ageError" style="color:red; margin-top:10px;"></div>
+
+<script>
+  function isAdult(birthDateStr) {
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    return age > 18 || (age === 18 && m >= 0 && today.getDate() >= birthDate.getDate());
+  }
+
+  function validateForm(event) {
+    const birthDateInput = document.getElementById("birthDate");
+    const birthDate = birthDateInput.value;
+
+    const errorDiv = document.getElementById("ageError");
+    errorDiv.textContent = "";
+
+    if (!isAdult(birthDate)) {
+      event.preventDefault();
+      errorDiv.textContent = "Вам должно быть не менее 18 лет.";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    form.addEventListener("submit", validateForm);
+  });
+</script>

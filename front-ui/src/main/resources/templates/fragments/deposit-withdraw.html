@@ -1,4 +1,35 @@
 <div th:fragment="depositWithdraw">
     <h3>Пополнение и снятие</h3>
-    <p>Здесь будут формы для внесения и снятия денег со счета</p>
+
+    <form th:action="@{/home/cash}" method="post">
+        <div>
+            <label for="accountId">Счёт:</label>
+            <select id="accountId" name="accountId" required>
+                <option th:each="account : ${accounts}"
+                        th:value="${account.id}"
+                        th:text="${account.currency + ' (' + account.balance + ')'}">
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label for="amount">Сумма:</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0.01" required>
+        </div>
+
+        <div>
+            <button type="submit" name="operationType" value="DEPOSIT">Положить</button>
+            <button type="submit" name="operationType" value="WITHDRAW">Снять</button>
+        </div>
+
+        <div th:if="${cashError}" style="color: red;">
+            <p th:text="${cashError}"></p>
+        </div>
+
+        <div th:if="${cashSuccess}" style="color: green;">
+            <p th:text="${cashSuccess}"></p>
+        </div>
+
+        <input type="hidden" name="userId" th:value="${userId}" />
+    </form>
 </div>

@@ -26,7 +26,7 @@ public class LoginPasswordSecurityConfig {
     @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/auth/**", "/profile")
+                .securityMatcher("/auth/**", "/profiles/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()

@@ -24,10 +24,11 @@ public class OAuth2ClientCredentialsSecurityConfig {
     @Order(1)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/actuator/**", "/ping")
+                .securityMatcher("/actuator/**", "/ping", "/accounts/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().hasAuthority("ROLE_can-access-accounts")
+                                .requestMatchers("/actuator/**").permitAll()
+                                .requestMatchers("/ping", "/accounts/**").hasAuthority("ROLE_can-access-accounts")
+                                .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

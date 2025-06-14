@@ -27,7 +27,8 @@ public class SecurityConfig {
                                 "/process-login",
                                 "/actuator/health",
                                 "/home",
-                                "/register").permitAll()
+                                "/register",
+                                "/profile/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

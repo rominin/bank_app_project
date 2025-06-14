@@ -21,6 +21,20 @@ spring:
     suffix: .html
     cache: false
 
+  security:
+    oauth2:
+      client:
+        registration:
+          front-ui:
+            authorizationGrantType: client_credentials
+            provider: keycloak
+            client-id: front-ui_m2m
+            client-secret: sP4ME81qdYK23nMz4CV7AxT52KUeqBJj
+        provider:
+          keycloak:
+            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+
+
 security:
   jwt:
     secret: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
@@ -36,3 +50,29 @@ management:
 logging:
   level:
     org.springframework.cloud.consul: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userInfoCircuitBreaker, accountsCircuitBreaker, deleteProfileCircuitBreaker, deleteProfileCircuitBreaker, updateProfileCircuitBreaker, deleteAccountCircuitBreaker, addAccountCircuitBreaker, updateAccountCircuitBreaker, findAccountCircuitBreaker, processOperationCircuitBreaker, getRatesCircuitBreaker, transferCircuitBreaker:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+
+  retry:
+    instances:
+      userInfoRetry, accountsRetry, deleteProfileRetry, changePasswordRetry, updateProfileRetry, deleteAccountRetry, addAccountRetry, updateAccountRetry, findAccountRetry, processOperationRetry, getRatesRetry, transferRetry:
+        max-attempts: 3
+        wait-duration: 1s
+
+account-service:
+  profile-url: http://api-gateway/accounts/profiles
+  account-url: http://api-gateway/accounts/accounts
+cash-service:
+  url: http://api-gateway/cash
+transfer-service:
+  url: http://api-gateway/transfer
+exchange-service:
+  url: http://api-gateway/exchange
