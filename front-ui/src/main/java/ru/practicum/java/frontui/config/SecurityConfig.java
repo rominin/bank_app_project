@@ -23,12 +23,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/process-login", "/actuator/health", "/home").permitAll()
+                        .requestMatchers("/login",
+                                "/process-login",
+                                "/actuator/health",
+                                "/home",
+                                "/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        .logoutUrl("/perform-logout")
                         .addLogoutHandler((request, response, authentication) -> {
                             Cookie cookie = new Cookie("JWT", null);
                             cookie.setHttpOnly(true);

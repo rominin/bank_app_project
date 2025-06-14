@@ -1,0 +1,5 @@
+<h2>Вы уверены, что хотите выйти?</h2>
+<form th:action="@{/perform-logout}" method="post">
+  <button type="submit">Да, выйти</button>
+</form>
+<a th:href="@{/}">Отмена</a>
