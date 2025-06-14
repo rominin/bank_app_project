@@ -51,14 +51,18 @@ public class UserService {
     }
 
     public String authenticateUser(LoginRequestDto dto) {
-        User user = userRepository.findByUsername(dto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = getByUsername(dto.getUsername());
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid password");
         }
 
         return jwtUtil.generateToken(user.getUsername());
+    }
+
+    public User getByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
 }
