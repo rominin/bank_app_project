@@ -57,4 +57,12 @@ logging:
 
 # todo: put property into consul
 exchange-service:
-  url: http://api-gateway/exchange/ping
+  url: http://api-gateway/exchange/rates
+
+currency:
+  pairs:
+    [USD, EUR, CNY]
+  range:
+    USD: {min: 80, max: 90}
+    EUR: {min: 85, max: 100}
+    CNY: {min: 11, max: 11.5}

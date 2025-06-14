@@ -7,11 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import ru.practicum.java.exchangegeneratorservice.dto.CurrencyRateDto;
 
 import java.util.Optional;
 
@@ -26,15 +26,16 @@ public class ExchangeClient {
     private final OAuth2AuthorizedClientManager authorizedClientManager;
     private final RestTemplate restTemplate;
 
-    @Retry(name = "sendRateToExchangeServiceRetry", fallbackMethod = "fallbackPing")
-    @CircuitBreaker(name = "sendRateToExchangeServiceBreaker", fallbackMethod = "fallbackPing")
-    public void pingExchangeService() {
+    @Retry(name = "sendRateToExchangeServiceRetry", fallbackMethod = "fallbackSend")
+    @CircuitBreaker(name = "sendRateToExchangeServiceBreaker", fallbackMethod = "fallbackSend")
+    public void send(CurrencyRateDto rate) {
         String token = getAccessToken();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
+        HttpEntity<CurrencyRateDto> entity = new HttpEntity<>(rate, headers);
 
-        restTemplate.exchange(exchangeServiceUrl, HttpMethod.GET, new HttpEntity<Void>(headers), Void.class);
+        restTemplate.postForEntity(exchangeServiceUrl, entity, Void.class);
     }
 
     private String getAccessToken() {
@@ -48,8 +49,8 @@ public class ExchangeClient {
                 .orElseThrow(() -> new IllegalStateException("Didn't manage to retrieve access token"));
     }
 
-    public void fallbackPing(Throwable ex) {
-        log.warn("Some issues occurred + ", ex.getMessage());
+    public void fallbackSend(CurrencyRateDto rate, Throwable ex) {
+        log.warn("Failed to send exchange rate {} → {}: {}, fallback activated", rate.getFrom(), rate.getTo(), ex.getMessage());
     }
 
 }
