@@ -13,7 +13,7 @@ public class AccountsServiceApplication {
         SpringApplication.run(AccountsServiceApplication.class, args);
     }
 
-    // Replace from LoginPasswordSecurityConfig to avoid circular dependency
+    // Replaced from LoginPasswordSecurityConfig to avoid circular dependency
     // todo: find a better place
     @Bean
     public PasswordEncoder passwordEncoder() {
