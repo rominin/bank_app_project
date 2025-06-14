@@ -14,6 +14,17 @@ spring:
   config:
     import: "consul:"
 
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+
+security:
+  jwt:
+    secret: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
+
 management:
   endpoints:
     web:
