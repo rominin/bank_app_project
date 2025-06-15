@@ -88,6 +88,6 @@ resilience4j:
         max-attempts: 3
         wait-duration: 1s
 
-# todo: put property into consul
-notification-service:
-  url: http://api-gateway/notification/notify
+# properties residing in consul:
+#notification-service:
+#  url: http://api-gateway/notification/notify

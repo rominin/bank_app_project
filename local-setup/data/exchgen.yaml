@@ -1,0 +1,2 @@
+exchange-service:
+  url: http://api-gateway/exchange/rates

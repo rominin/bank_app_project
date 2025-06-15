@@ -55,9 +55,9 @@ logging:
   level:
     org.springframework.cloud.consul: DEBUG
 
-# todo: put property into consul
-exchange-service:
-  url: http://api-gateway/exchange/rates
+# properties residing in consul:
+#exchange-service:
+#  url: http://api-gateway/exchange/rates
 
 currency:
   pairs:

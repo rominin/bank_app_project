@@ -62,10 +62,10 @@ resilience4j:
         max-attempts: 3
         wait-duration: 1s
 
-# todo: put property into consul
-blocker-service:
-  url: http://api-gateway/blocker/check
-notification-service:
-  url: http://api-gateway/notification/notify
-account-service:
-  url: http://api-gateway/accounts/accounts
+# properties residing in consul:
+#blocker-service:
+#  url: http://api-gateway/blocker/check
+#notification-service:
+#  url: http://api-gateway/notification/notify
+#account-service:
+#  url: http://api-gateway/accounts/accounts
