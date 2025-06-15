@@ -38,7 +38,7 @@ public class AccountService {
     public void addAccount(Long userId, Currency currency) {
         User user = profileService.getUserProfile(userId);
         if (userAccountRepository.findByUserAndCurrency(user, currency).isPresent()) {
-            throw new IllegalStateException("Account in this currency already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account in this currency already exists");
         }
         userAccountRepository.save(UserAccount.builder()
                 .user(user)
@@ -93,7 +93,7 @@ public class AccountService {
 
         User user = profileService.getUserProfile(userId);
         if (userAccountRepository.findByUserAndCurrency(user, currency).isPresent()) {
-            throw new IllegalStateException("Account in this currency already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account in this currency already exists");
         }
 
         if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {

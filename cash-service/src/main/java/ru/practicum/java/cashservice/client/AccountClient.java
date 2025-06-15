@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.java.cashservice.dto.UpdateBalanceRequestDto;
 import ru.practicum.java.cashservice.dto.UserAccountDto;
@@ -61,6 +62,11 @@ public class AccountClient {
 
     public void fallbackUpdate(Long accountId, UpdateBalanceRequestDto dto, Throwable ex) {
         log.error("Fallback: не удалось обновить баланс аккаунта {} — {}", accountId, ex.getMessage());
+        if (ex instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) ex;
+        }
+
+        throw new RuntimeException("Error by deposit/withdrawal", ex);
     }
 
 }

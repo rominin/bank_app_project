@@ -164,7 +164,7 @@ public class HomeController {
             return "redirect:/home";
         } catch (HttpClientErrorException ex) {
             if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                redirectAttributes.addFlashAttribute("deleteAccountError", "Не удалось удалить счёт: " + ex.getMessage());
+                redirectAttributes.addFlashAttribute("deleteAccountError", "Не удалось удалить счёт: баланс ненулевой");
                 return "redirect:/home";
             } else
                 throw ex;
@@ -183,7 +183,7 @@ public class HomeController {
             return "redirect:/home";
         } catch (HttpClientErrorException ex) {
             if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                redirectAttributes.addFlashAttribute("addAccountError", "Error by account creation: " + ex.getMessage());
+                redirectAttributes.addFlashAttribute("addAccountError", "Error by account creation: account in this currency already exists.");
                 return "redirect:/home";
             } else
                 throw ex;
@@ -203,7 +203,7 @@ public class HomeController {
             return "redirect:/home";
         } catch (HttpClientErrorException ex) {
             if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                redirectAttributes.addFlashAttribute("editAccountError", "Error by account editing: " + ex.getMessage());
+                redirectAttributes.addFlashAttribute("editAccountError", "Error by account editing: account in this currency already exists.");
                 return "redirect:/home";
             } else
                 throw ex;

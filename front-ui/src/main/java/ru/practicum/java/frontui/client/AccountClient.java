@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.java.frontui.dto.UserAccountDto;
@@ -93,6 +94,11 @@ public class AccountClient {
 
     public void fallbackDeleteProfile(HttpServletRequest request, Throwable ex) {
         log.warn("Profile delete request {} failed: {}", request, ex.getMessage(), ex);
+        if (ex instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) ex;
+        }
+
+        throw new RuntimeException("Error by account deleting", ex);
     }
 
     @Retry(name = "changePasswordRetry", fallbackMethod = "fallbackChangePassword")
@@ -147,6 +153,11 @@ public class AccountClient {
 
     public void fallbackDeleteAccount(Long userId, String currency, Throwable ex) {
         log.warn("Account delete request for userId {} and currency {} failed: {}", userId, currency, ex.getMessage(), ex);
+        if (ex instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) ex;
+        }
+
+        throw new RuntimeException("Error by account deleting", ex);
     }
 
     @Retry(name = "addAccountRetry", fallbackMethod = "fallbackAddAccount")
@@ -169,6 +180,10 @@ public class AccountClient {
 
     public void fallbackAddAccount(Long userId, String currency, Throwable ex) {
         log.warn("Account add request for userId {} and currency {} failed: {}", userId, currency, ex.getMessage(), ex);
+        if (ex instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) ex;
+        }
+        throw new RuntimeException("Error by account creation", ex);
     }
 
     @Retry(name = "updateAccountRetry", fallbackMethod = "fallbackUpdateAccount")
@@ -192,6 +207,10 @@ public class AccountClient {
 
     public void fallbackUpdateAccount(Long accountId, Long userId, String currency, Throwable ex) {
         log.warn("Account update request for userId {} and currency {} failed: {}", userId, currency, ex.getMessage(), ex);
+        if (ex instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) ex;
+        }
+        throw new RuntimeException("Error by account change", ex);
     }
 
     @Retry(name = "findAccountRetry", fallbackMethod = "fallbackFindAccount")
