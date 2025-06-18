@@ -5,7 +5,7 @@ spring:
   application:
     name: api-gateway
   config:
-    import: "consul:"
+    import: "optional:consul:"
   cloud:
     consul:
       config:

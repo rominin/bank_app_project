@@ -12,7 +12,7 @@ spring:
         defaultContext: application
         format: yaml
   config:
-    import: "consul:"
+    import: "optional:consul:"
 
   security:
     oauth2:

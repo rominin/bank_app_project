@@ -2,11 +2,13 @@ package ru.practicum.java.blockerservice.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
+@Builder
 public class BlockCheckRequest {
 
     @NotBlank(message = "operationType is required")
