@@ -6,6 +6,7 @@ import ru.practicum.java.blockerservice.dto.BlockCheckRequest;
 import ru.practicum.java.blockerservice.dto.BlockCheckResponse;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 @Service
 @Slf4j
@@ -17,7 +18,7 @@ public class BlockerService {
         boolean blocked = request.getAmount().compareTo(BLOCK_THRESHOLD) > 0;
 
         if (blocked) {
-            String reason = String.format("Operation blocked: %.2f > %.2f RUB", request.getAmount(), BLOCK_THRESHOLD);
+            String reason = String.format(Locale.US, "Operation blocked: %.2f > %.2f RUB", request.getAmount(), BLOCK_THRESHOLD);
             log.warn("BLOCKED {} for user {} - {}", request.getOperationType(), request.getUserId(), reason);
             return new BlockCheckResponse(true, reason);
         }
