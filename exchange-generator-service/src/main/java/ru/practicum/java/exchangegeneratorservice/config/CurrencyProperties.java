@@ -2,6 +2,7 @@ package ru.practicum.java.exchangegeneratorservice.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ public class CurrencyProperties {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Range {
         private double min;
         private double max;

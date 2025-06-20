@@ -1,0 +1,9 @@
+account-service:
+  profile-url: http://api-gateway/accounts/profiles
+  account-url: http://api-gateway/accounts/accounts
+cash-service:
+  url: http://api-gateway/cash
+transfer-service:
+  url: http://api-gateway/transfer
+exchange-service:
+  url: http://api-gateway/exchange

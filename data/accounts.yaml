@@ -1,0 +1,2 @@
+notification-service:
+  url: http://api-gateway/notification/notify
