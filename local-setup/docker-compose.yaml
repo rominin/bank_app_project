@@ -15,19 +15,6 @@ services:
     ports:
       - "8080:8080"
 
-  consul:
-    image: hashicorp/consul:1.20
-    container_name: consul-for-local
-    ports:
-      - "8500:8500"
-      - "8600:8600/udp"
-    command: agent -dev -client=0.0.0.0
-    volumes:
-      - ./init-consul.sh:/init-consul.sh
-      - ./data:/data
-    # chmod +x init-consul.sh
-    entrypoint: /init-consul.sh
-
   db:
     image: postgres:15
     container_name: postgres-for-local

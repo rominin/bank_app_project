@@ -1,2 +1,2 @@
 exchange-service:
-  url: http://api-gateway/exchange/rates
+  url: http://localhost:8085/rates

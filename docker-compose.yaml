@@ -14,10 +14,7 @@ services:
       - "8086:8086" # front-ui
       - "8087:8087" # notification-service
       - "8088:8088" # transfer-service
-      - "8090:8090" # api-gateway
       - "5432:5432" # Postgres port
-      - "8500:8500" # consul1
-      - "8600:8600/udp" #consul2
 
   db:
     image: postgres:latest
@@ -42,38 +39,14 @@ services:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     network_mode: "service:localhost"
 
-  consul:
-    image: hashicorp/consul:1.20
-    container_name: consul-server
-    command: agent -dev -client=0.0.0.0
-    volumes:
-      - ./init-consul.sh:/init-consul.sh
-      - ./data:/data
-    # chmod +x init-consul.sh
-    entrypoint: /init-consul.sh
-    network_mode: "service:localhost"
-
-  api-gateway:
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    container_name: bank-api-gateway
-    depends_on:
-      - consul
-      - keycloak
-      - db
-    network_mode: "service:localhost"
-
   accounts-service:
     build:
       context: ./accounts-service
       dockerfile: Dockerfile
     container_name: bank-accounts-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   blocker-service:
@@ -82,10 +55,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-blocker-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   cash-service:
@@ -94,10 +65,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-cash-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   exchgen-service:
@@ -106,10 +75,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-exchgen-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   exchange-service:
@@ -118,10 +85,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-exchange-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   front-ui:
@@ -130,10 +95,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-front-ui
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   notification-service:
@@ -142,10 +105,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-notification-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
   transfer-service:
@@ -154,10 +115,8 @@ services:
       dockerfile: Dockerfile
     container_name: bank-transfer-service
     depends_on:
-      - consul
       - keycloak
       - db
-      - api-gateway
     network_mode: "service:localhost"
 
 volumes:

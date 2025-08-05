@@ -1,6 +1,0 @@
-blocker-service:
-  url: http://api-gateway/blocker/check
-notification-service:
-  url: http://api-gateway/notification/notify
-account-service:
-  url: http://api-gateway/accounts/accounts

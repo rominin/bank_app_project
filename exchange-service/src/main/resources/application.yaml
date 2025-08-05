@@ -4,15 +4,6 @@ server:
 spring:
   application:
     name: exchange-service
-  cloud:
-    consul:
-      config:
-        enabled: true
-        prefix: config
-        defaultContext: application
-        format: yaml
-  config:
-    import: "optional:consul:"
 
   security:
     oauth2:
@@ -46,5 +37,4 @@ management:
       show-details: always
 logging:
   level:
-    org.springframework.cloud.consul: DEBUG
     org.springframework.security: DEBUG

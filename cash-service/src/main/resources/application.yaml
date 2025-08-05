@@ -4,15 +4,6 @@ server:
 spring:
   application:
     name: cash-service
-  cloud:
-    consul:
-      config:
-        enabled: true
-        prefix: config
-        defaultContext: application
-        format: yaml
-  config:
-    import: "optional:consul:"
 
   security:
     oauth2:
@@ -42,7 +33,6 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.consul: DEBUG
     org.springframework.security: DEBUG
     io.github.resilience4j.retry: DEBUG
 
@@ -62,10 +52,10 @@ resilience4j:
         max-attempts: 3
         wait-duration: 1s
 
-# properties residing in consul:
-#blocker-service:
-#  url: http://api-gateway/blocker/check
-#notification-service:
-#  url: http://api-gateway/notification/notify
-#account-service:
-#  url: http://api-gateway/accounts/accounts
+# properties previously residing in consul:
+blocker-service:
+  url: http://localhost:8082/check
+notification-service:
+  url: http://localhost:8087/notify
+account-service:
+  url: http://localhost:8081/accounts

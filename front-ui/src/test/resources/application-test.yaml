@@ -1,9 +1,9 @@
 account-service:
-  profile-url: http://api-gateway/accounts/profiles
-  account-url: http://api-gateway/accounts/accounts
+  profile-url: http://localhost:8081/accounts/profiles
+  account-url: http://localhost:8081/accounts/accounts
 cash-service:
-  url: http://api-gateway/cash
+  url: http://localhost:8083
 transfer-service:
-  url: http://api-gateway/transfer
+  url: http://localhost:8088
 exchange-service:
-  url: http://api-gateway/exchange
+  url: http://localhost:8085

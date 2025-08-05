@@ -4,15 +4,6 @@ server:
 spring:
   application:
     name: accounts-service
-  cloud:
-    consul:
-      config:
-        enabled: true
-        prefix: config
-        defaultContext: application
-        format: yaml
-  config:
-    import: "optional:consul:"
 
   security:
     oauth2:
@@ -69,7 +60,6 @@ management:
       show-details: always
 logging:
   level:
-    org.springframework.cloud.consul: DEBUG
     org.springframework.security: DEBUG
 
 resilience4j:
@@ -88,6 +78,6 @@ resilience4j:
         max-attempts: 3
         wait-duration: 1s
 
-# properties residing in consul:
-#notification-service:
-#  url: http://api-gateway/notification/notify
+# properties previously residing in consul:
+notification-service:
+  url: http://localhost:8087/notify

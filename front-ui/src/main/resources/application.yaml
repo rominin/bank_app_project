@@ -4,15 +4,6 @@ server:
 spring:
   application:
     name: front-ui
-  cloud:
-    consul:
-      config:
-        enabled: true
-        prefix: config
-        defaultContext: application
-        format: yaml
-  config:
-    import: "optional:consul:"
 
   thymeleaf:
     mode: HTML
@@ -67,13 +58,14 @@ resilience4j:
         max-attempts: 3
         wait-duration: 1s
 
-# properties residing in consul:
-#account-service:
-#  profile-url: http://api-gateway/accounts/profiles
-#  account-url: http://api-gateway/accounts/accounts
-#cash-service:
-#  url: http://api-gateway/cash
-#transfer-service:
-#  url: http://api-gateway/transfer
-#exchange-service:
-#  url: http://api-gateway/exchange
+# properties previously residing in consul (+ 1 extra):
+account-service:
+  profile-url: http://localhost:8081/profiles
+  account-url: http://localhost:8081/accounts
+  general-url: http://localhost:8081
+cash-service:
+  url: http://localhost:8083
+transfer-service:
+  url: http://localhost:8088
+exchange-service:
+  url: http://localhost:8085

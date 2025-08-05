@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,9 @@ import ru.practicum.java.frontui.dto.LoginRequestDto;
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
+
+    @Value("${account-service.general-url}")
+    private String accountServiceUrl;
 
     private final RestTemplate restTemplate;
 
@@ -35,7 +39,7 @@ public class AuthController {
             LoginRequestDto dto = new LoginRequestDto(username, password);
 
             ResponseEntity<String> accountServiceResponse = restTemplate.postForEntity(
-                    "http://api-gateway/accounts/auth/login",
+                    accountServiceUrl + "/auth/login",
                     dto,
                     String.class
             );

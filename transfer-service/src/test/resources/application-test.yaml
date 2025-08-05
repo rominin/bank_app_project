@@ -1,8 +1,8 @@
 blocker-service:
-  url: http://api-gateway/blocker/check
+  url: http://localhost:8081/check
 notification-service:
-  url: http://api-gateway/notification/notify
+  url: http://localhost:8087/notify
 account-service:
-  url: http://api-gateway/accounts/accounts
+  url: http://localhost:8081/accounts/accounts
 exchange-service:
-  url: http://api-gateway/exchange
+  url: http://localhost:8085
