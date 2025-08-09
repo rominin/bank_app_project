@@ -97,3 +97,104 @@ keycloak:
       value: bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local
     - name: KC_HOSTNAME_STRICT
       value: "true"
+
+# Configuration for the exchange-service subchart
+# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
+# (e.g., `docker build -t exchange-service:0.0.1-SNAPSHOT .` in exchange-service dir)
+# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
+exchange-service:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    # --- REVERTED TO LOCAL REPO ---
+    repository: exchange-service # Removed registry prefix
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "0.0.1-SNAPSHOT"
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent # Use IfNotPresent for local images
+    # -----------------------------
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 8085
+  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+  ingress:
+    enabled: true
+    className: "nginx" # Specify your ingress controller class
+    hosts:
+      - host: exchange.myapp.local # Use global domain or specific
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+  # Database connection details passed to exchange-service configmap
+  config:
+    # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
+    database_url: "jdbc:postgresql://{{ .Release.Name }}-exchange-db:5432/exchangedb"
+    # Secret reference for password is more secure
+    database_username: "exchange_user"
+    # database_password_secret: "{{ .Release.Name }}-exchange-db-postgresql" # Reference to secret created by DB chart
+    # database_password_secret_key: "postgresql-password" # Key within the secret
+    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
+
+# Configuration for the exchange-db (PostgreSQL dependency)
+# Values here are prefixed according to the Bitnami PostgreSQL chart's structure
+# Check the Bitnami chart's values.yaml for all available options
+exchange-db:
+  enabled: true
+  # Override values from the official postgresql chart
+  auth:
+    database: exchangedb
+    username: exchange_user
+    # Use existingSecret or provide password (less secure for production)
+    existingSecret: "{{ .Release.Name }}-exchange-db-postgresql" # Name of the secret to use/create
+  #    password: "changeM3exchange!" # Example: Not recommended for production
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi # Small size for example
+
+# Configuration for the exchange-generator-service subchart
+# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
+# (e.g., `docker build -t exchange-generator-service:0.0.1-SNAPSHOT .` in exchange-generator-service dir)
+# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
+exchange-generator-service:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    # --- REVERTED TO LOCAL REPO ---
+    repository: exchange-generator-service # Removed registry prefix
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "0.0.1-SNAPSHOT"
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent # Use IfNotPresent for local images
+    # -----------------------------
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 8084
+  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+  ingress:
+    enabled: true
+    className: "nginx" # Specify your ingress controller class
+    hosts:
+      - host: exchange-generator.myapp.local # Use global domain or specific
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+  # Some details passed to exchange-generator-service configmap
+  config:
+    spring_security_oauth2_client_provider_keycloak_token_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token"
+    exchange_service_url: "http://bank-app-exchange-service.{{ .Release.Namespace }}.svc.cluster.local:8085/rates"
+
+  secret:
+    enabled: true
+    name: exchange-generator-secret
+    data:
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_ID: exchange-generator-service_m2m
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_SECRET: juV1s9b0KlrXQfs5QoQAjhsTnItkToxw

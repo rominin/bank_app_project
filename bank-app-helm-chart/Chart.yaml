@@ -42,3 +42,20 @@ dependencies:
     repository: "https://charts.bitnami.com/bitnami"
     alias: keycloak
     condition: keycloak.enabled
+
+  # Subchart for Exchange Service
+  - name: exchange-service
+    version: "0.1.0"
+    repository: "file://./charts/exchange-service" # Local path reference
+
+  # Dependency for Notification DB (e.g., PostgreSQL)
+  - name: postgresql
+    version: "14.2.3" # Using a specific known stable version from Bitnami history
+    repository: "https://charts.bitnami.com/bitnami"
+    alias: exchange-db # Alias to distinguish this instance
+    condition: exchange-db.enabled # Allow disabling if needed
+
+  # Subchart for Exchange Generator Service
+  - name: exchange-generator-service
+    version: "0.1.0"
+    repository: "file://./charts/exchange-generator-service" # Local path reference
