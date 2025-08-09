@@ -1,6 +1,6 @@
 apiVersion: v2
-name: bank-app-helm-chart
-description: A Helm chart for Kubernetes (umbrella-structured)
+name: notification-service
+description: A Helm chart for Notification microservice
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -22,16 +22,3 @@ version: 0.1.0
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "1.0.0"
-
-dependencies:
-  # Subchart for Notification Service
-  - name: notification-service
-    version: "0.1.0"
-    repository: "file://./charts/notification-service" # Local path reference
-
-  # Dependency for Notification DB (e.g., PostgreSQL)
-  - name: postgresql
-    version: "14.2.3" # Using a specific known stable version from Bitnami history
-    repository: "https://charts.bitnami.com/bitnami"
-    alias: notification-db # Alias to distinguish this instance
-    condition: notification-db.enabled # Allow disabling if needed
