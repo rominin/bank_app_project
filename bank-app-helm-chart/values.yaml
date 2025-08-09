@@ -6,60 +6,18 @@
 global:
   domain: myapp.local # Example domain for ingress
 
-# Configuration for the notification-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t notification-service:0.0.1-SNAPSHOT .` in notification-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
-notification-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-  replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-  image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: notification-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-  service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-    type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-    port: 8087
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-  ingress:
-    enabled: true
-    className: "nginx" # Specify your ingress controller class
-    hosts:
-      - host: notification.myapp.local # Use global domain or specific
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-  # Database connection details passed to notification-service configmap
-  config:
-    # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
-    database_url: "jdbc:postgresql://{{ .Release.Name }}-notification-db:5432/notificationdb"
-    # Secret reference for password is more secure
-    database_username: "notification_user"
-    # database_password_secret: "{{ .Release.Name }}-notification-db-postgresql" # Reference to secret created by DB chart
-    # database_password_secret_key: "postgresql-password" # Key within the secret
-    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
-#    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.bank-app-develop.svc.cluster.local:8080/realms/bank-app"
-
-# Configuration for the notification-db (PostgreSQL dependency)
+# Configuration for the common-db (PostgreSQL dependency)
 # Values here are prefixed according to the Bitnami PostgreSQL chart's structure
 # Check the Bitnami chart's values.yaml for all available options
-notification-db:
+common-db:
   enabled: true
   # Override values from the official postgresql chart
   auth:
-    database: notificationdb
-    username: notification_user
+    database: commondb
+    username: common_user
     # Use existingSecret or provide password (less secure for production)
-    existingSecret: "{{ .Release.Name }}-notification-db-postgresql" # Name of the secret to use/create
-#    password: "changeM3Notification!" # Example: Not recommended for production
+    existingSecret: "{{ .Release.Name }}-common-db-postgresql" # Name of the secret to use/create
+  #    password: "changeM3Notification!" # Example: Not recommended for production
   primary:
     persistence:
       enabled: true
@@ -98,6 +56,54 @@ keycloak:
     - name: KC_HOSTNAME_STRICT
       value: "true"
 
+# Configuration for the notification-service subchart
+# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
+# (e.g., `docker build -t notification-service:0.0.1-SNAPSHOT .` in notification-service dir)
+# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
+notification-service:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    # --- REVERTED TO LOCAL REPO ---
+    repository: notification-service # Removed registry prefix
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "0.0.1-SNAPSHOT"
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent # Use IfNotPresent for local images
+    # -----------------------------
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 8087
+  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+  ingress:
+    enabled: true
+    className: "nginx" # Specify your ingress controller class
+    hosts:
+      - host: notification.myapp.local # Use global domain or specific
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+  # Database connection details passed to notification-service configmap
+  config:
+    # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
+    database_url: "jdbc:postgresql://{{ .Release.Name }}-common-db:5432/commondb"
+    # Secret reference for password is more secure
+    database_username: "common_user"
+    # database_password_secret: "{{ .Release.Name }}-common-db-postgresql" # Reference to secret created by DB chart
+    # database_password_secret_key: "postgresql-password" # Key within the secret
+    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
+  #    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.bank-app-develop.svc.cluster.local:8080/realms/bank-app"
+
+  secret:
+    enabled: true
+    name: notification-secret
+    data:
+      SPRING_DATASOURCE_PASSWORD: postgres
+
 # Configuration for the exchange-service subchart
 # NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
 # (e.g., `docker build -t exchange-service:0.0.1-SNAPSHOT .` in exchange-service dir)
@@ -132,29 +138,18 @@ exchange-service:
   # Database connection details passed to exchange-service configmap
   config:
     # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
-    database_url: "jdbc:postgresql://{{ .Release.Name }}-exchange-db:5432/exchangedb"
+    database_url: "jdbc:postgresql://{{ .Release.Name }}-common-db:5432/commondb"
     # Secret reference for password is more secure
-    database_username: "exchange_user"
-    # database_password_secret: "{{ .Release.Name }}-exchange-db-postgresql" # Reference to secret created by DB chart
+    database_username: "common_user"
+    # database_password_secret: "{{ .Release.Name }}-common-db-postgresql" # Reference to secret created by DB chart
     # database_password_secret_key: "postgresql-password" # Key within the secret
     spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
 
-# Configuration for the exchange-db (PostgreSQL dependency)
-# Values here are prefixed according to the Bitnami PostgreSQL chart's structure
-# Check the Bitnami chart's values.yaml for all available options
-exchange-db:
-  enabled: true
-  # Override values from the official postgresql chart
-  auth:
-    database: exchangedb
-    username: exchange_user
-    # Use existingSecret or provide password (less secure for production)
-    existingSecret: "{{ .Release.Name }}-exchange-db-postgresql" # Name of the secret to use/create
-  #    password: "changeM3exchange!" # Example: Not recommended for production
-  primary:
-    persistence:
-      enabled: true
-      size: 1Gi # Small size for example
+  secret:
+    enabled: true
+    name: exchange-secret
+    data:
+      SPRING_DATASOURCE_PASSWORD: postgres
 
 # Configuration for the exchange-generator-service subchart
 # NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally

@@ -54,12 +54,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "notification-service.fullname" . }}
-          env:
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-notification-db
-                  key: password
+            - secretRef:
+                name: {{ .Values.secret.name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -24,17 +24,12 @@ version: 0.1.0
 appVersion: "1.0.0"
 
 dependencies:
-  # Subchart for Notification Service
-  - name: notification-service
-    version: "0.1.0"
-    repository: "file://./charts/notification-service" # Local path reference
-
-  # Dependency for Notification DB (e.g., PostgreSQL)
+  # Dependency for Common DB (PostgreSQL)
   - name: postgresql
     version: "14.2.3" # Using a specific known stable version from Bitnami history
     repository: "https://charts.bitnami.com/bitnami"
-    alias: notification-db # Alias to distinguish this instance
-    condition: notification-db.enabled # Allow disabling if needed
+    alias: common-db # Alias to distinguish this instance
+    condition: common-db.enabled # Allow disabling if needed
 
   # Dependency for security service (Keycloak)
   - name: keycloak
@@ -43,17 +38,15 @@ dependencies:
     alias: keycloak
     condition: keycloak.enabled
 
+  # Subchart for Notification Service
+  - name: notification-service
+    version: "0.1.0"
+    repository: "file://./charts/notification-service" # Local path reference
+
   # Subchart for Exchange Service
   - name: exchange-service
     version: "0.1.0"
     repository: "file://./charts/exchange-service" # Local path reference
-
-  # Dependency for Notification DB (e.g., PostgreSQL)
-  - name: postgresql
-    version: "14.2.3" # Using a specific known stable version from Bitnami history
-    repository: "https://charts.bitnami.com/bitnami"
-    alias: exchange-db # Alias to distinguish this instance
-    condition: exchange-db.enabled # Allow disabling if needed
 
   # Subchart for Exchange Generator Service
   - name: exchange-generator-service

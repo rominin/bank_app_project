@@ -54,12 +54,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "exchange-service.fullname" . }}
-          env:
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-exchange-db
-                  key: password
+            - secretRef:
+                name: {{ .Values.secret.name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
