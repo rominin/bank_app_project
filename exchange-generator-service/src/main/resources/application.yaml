@@ -12,11 +12,11 @@ spring:
           exchange-generator-service:
             authorizationGrantType: client_credentials
             provider: keycloak
-            client-id: exchange-generator-service_m2m
-            client-secret: juV1s9b0KlrXQfs5QoQAjhsTnItkToxw
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_ID:exchange-generator-service_m2m}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_SECRET:juV1s9b0KlrXQfs5QoQAjhsTnItkToxw}
         provider:
           keycloak:
-            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI:http://localhost:8080/realms/bank-app/protocol/openid-connect/token}
 
 resilience4j:
   circuitbreaker:
@@ -45,7 +45,7 @@ management:
 
 # properties previously residing in consul:
 exchange-service:
-  url: http://localhost:8085/rates
+  url: ${EXCHANGE_SERVICE_URL:http://localhost:8085/rates}
 
 currency:
   pairs:

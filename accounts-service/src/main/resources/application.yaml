@@ -9,23 +9,23 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/bank-app
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8080/realms/bank-app}
 
       client:
         registration:
           account-service:
             authorizationGrantType: client_credentials
             provider: keycloak
-            client-id: accounts-service_m2m
-            client-secret: vVwOHF8UY8Oah9a3aZGSt0GgyK1BflDI
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ACCOUNTS_SERVICE_CLIENT_ID:accounts-service_m2m}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ACCOUNTS_SERVICE_CLIENT_SECRET:vVwOHF8UY8Oah9a3aZGSt0GgyK1BflDI}
         provider:
           keycloak:
-            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI:http://localhost:8080/realms/bank-app/protocol/openid-connect/token}
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/bank_db
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bank_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -47,7 +47,7 @@ spring:
 
 security:
   jwt:
-    secret: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
+    secret: ${SECURITY_JWT_SECRET:wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=}
     expiration-minutes: 60
 
 management:
@@ -80,4 +80,4 @@ resilience4j:
 
 # properties previously residing in consul:
 notification-service:
-  url: http://localhost:8087/notify
+  url: ${NOTIFICATON_SERVICE_URL:http://localhost:8087/notify}

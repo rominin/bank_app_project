@@ -19,16 +19,16 @@ spring:
           front-ui:
             authorizationGrantType: client_credentials
             provider: keycloak
-            client-id: front-ui_m2m
-            client-secret: sP4ME81qdYK23nMz4CV7AxT52KUeqBJj
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FRONT_UI_CLIENT_ID:front-ui_m2m}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FRONT_UI_CLIENT_SECRET:sP4ME81qdYK23nMz4CV7AxT52KUeqBJj}
         provider:
           keycloak:
-            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI:http://localhost:8080/realms/bank-app/protocol/openid-connect/token}
 
 
 security:
   jwt:
-    secret: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
+    secret: ${SECURITY_JWT_SECRET:wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=}
 
 management:
   endpoints:
@@ -60,12 +60,12 @@ resilience4j:
 
 # properties previously residing in consul (+ 1 extra):
 account-service:
-  profile-url: http://localhost:8081/profiles
-  account-url: http://localhost:8081/accounts
-  general-url: http://localhost:8081
+  profile-url: ${ACCOUNT_SERVICE_PROFILE_URL:http://localhost:8081/profiles}
+  account-url: ${ACCOUNT_SERVICE_ACCOUNT_URL:http://localhost:8081/accounts}
+  general-url: ${ACCOUNT_SERVICE_GENERAL_URL:http://localhost:8081}
 cash-service:
-  url: http://localhost:8083
+  url: ${CASH_SERVICE_URL:http://localhost:8083}
 transfer-service:
-  url: http://localhost:8088
+  url: ${TRANSFER_SERVICE_URL:http://localhost:8088}
 exchange-service:
-  url: http://localhost:8085
+  url: ${EXCHANGE_SERVICE_URL:http://localhost:8085}

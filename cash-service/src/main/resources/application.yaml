@@ -9,18 +9,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/bank-app
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8080/realms/bank-app}
 
       client:
         registration:
           cash-service:
             authorizationGrantType: client_credentials
             provider: keycloak
-            client-id: cash-service_m2m
-            client-secret: ZkXS0uBiuTdDkUl0iONVxlWZkLN2E3oR
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_ID:cash-service_m2m}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET:ZkXS0uBiuTdDkUl0iONVxlWZkLN2E3oR}
         provider:
           keycloak:
-            token-uri: http://localhost:8080/realms/bank-app/protocol/openid-connect/token
+            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI:http://localhost:8080/realms/bank-app/protocol/openid-connect/token}
 
 management:
   endpoints:
@@ -54,8 +54,8 @@ resilience4j:
 
 # properties previously residing in consul:
 blocker-service:
-  url: http://localhost:8082/check
+  url: ${BLOCKER_SERVICE_URL:http://localhost:8082/check}
 notification-service:
-  url: http://localhost:8087/notify
+  url: ${NOTIFICATON_SERVICE_URL:http://localhost:8087/notify}
 account-service:
-  url: http://localhost:8081/accounts
+  url: ${ACCOUNT_SERVICE_URL:http://localhost:8081/accounts}
