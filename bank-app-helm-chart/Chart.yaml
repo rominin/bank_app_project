@@ -35,3 +35,10 @@ dependencies:
     repository: "https://charts.bitnami.com/bitnami"
     alias: notification-db # Alias to distinguish this instance
     condition: notification-db.enabled # Allow disabling if needed
+
+  # Dependency for security service (Keycloak)
+  - name: keycloak
+    version: "24.8.1"
+    repository: "https://charts.bitnami.com/bitnami"
+    alias: keycloak
+    condition: keycloak.enabled

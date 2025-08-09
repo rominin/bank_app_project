@@ -45,6 +45,8 @@ notification-service:
     database_username: "notification_user"
     # database_password_secret: "{{ .Release.Name }}-notification-db-postgresql" # Reference to secret created by DB chart
     # database_password_secret_key: "postgresql-password" # Key within the secret
+    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
+#    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.bank-app-develop.svc.cluster.local:8080/realms/bank-app"
 
 # Configuration for the notification-db (PostgreSQL dependency)
 # Values here are prefixed according to the Bitnami PostgreSQL chart's structure
@@ -62,3 +64,36 @@ notification-db:
     persistence:
       enabled: true
       size: 1Gi # Small size for example
+
+keycloak:
+  enabled: true
+  auth:
+    adminUser: admin
+    adminPassword: admin
+#    existingSecret: ""
+    createAdminUser: true
+  postgresql:
+    auth:
+      username: bn_keycloak
+      password: "mySuperSecretPass"
+  service:
+    type: ClusterIP
+    ports:
+      http: 8080
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: keycloak.myapp.local
+    path: /
+    pathType: ImplementationSpecific
+  keycloakConfigCli:
+    enabled: true
+    existingConfigmap: bank-app-keycloak-realm
+  realmConfig:
+    enabled: true
+    realmFile: files/realm-export.json
+  extraEnvVars:
+    - name: KC_HOSTNAME
+      value: bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local
+    - name: KC_HOSTNAME_STRICT
+      value: "true"

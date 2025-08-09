@@ -125,3 +125,4 @@ affinity: {}
 config:
   database_url: "jdbc:postgresql://bank-app-notification-db.{{ .Release.Namespace }}.svc.cluster.local:5432/notificationdb"
   database_username: "notification_user"
+  spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
