@@ -52,3 +52,28 @@ dependencies:
   - name: exchange-generator-service
     version: "0.1.0"
     repository: "file://./charts/exchange-generator-service" # Local path reference
+
+  # Subchart for Blocker Service
+  - name: blocker-service
+    version: "0.1.0"
+    repository: "file://./charts/blocker-service" # Local path reference
+
+  # Subchart for Transfer Service
+  - name: transfer-service
+    version: "0.1.0"
+    repository: "file://./charts/transfer-service" # Local path reference
+
+  # Subchart for Cach Service
+  - name: cash-service
+    version: "0.1.0"
+    repository: "file://./charts/cash-service" # Local path reference
+
+  # Subchart for Accounts Service
+  - name: accounts-service
+    version: "0.1.0"
+    repository: "file://./charts/accounts-service" # Local path reference
+
+  # Subchart for Front-ui Service
+  - name: front-ui-service
+    version: "0.1.0"
+    repository: "file://./charts/front-ui-service" # Local path reference
