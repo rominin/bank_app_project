@@ -179,5 +179,112 @@ pipeline {
                 """
             }
         }
+
+        stage('Helm Deploy to TEST') {
+            steps {
+                sh """
+                helm upgrade --install accounts-service bank-app-helm-chart/charts/accounts-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/accounts-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=accounts.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                  --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app \\
+                  --set config.notification_service_url=http://notification-service:8087/notify
+
+                helm upgrade --install blocker-service bank-app-helm-chart/charts/blocker-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/blocker-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=blocker.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app
+
+                helm upgrade --install cash-service bank-app-helm-chart/charts/cash-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/cash-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=cash.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app \\
+                  --set config.blocker_service_url=http://blocker-service:8082/check \\
+                  --set config.notification_service_url=http://notification-service:8087/notify \\
+                  --set config.account_service_url=http://accounts-service:8081/accounts
+
+                helm upgrade --install exchange-generator-service bank-app-helm-chart/charts/exchange-generator-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/exchange-generator-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange-generator.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                  --set config.exchange_service_url=http://exchange-service:8085/rates
+
+                helm upgrade --install exchange-service bank-app-helm-chart/charts/exchange-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/exchange-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app
+
+                helm upgrade --install front-ui bank-app-helm-chart/charts/front-ui-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/front-ui \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=front-ui.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                  --set config.account_service_profile_url=http://accounts-service:8081/profiles \\
+                  --set config.account_service_account_url=http://accounts-service:8081/accounts \\
+                  --set config.account_service_general_url=http://accounts-service:8081 \\
+                  --set config.cash_service_url=http://blocker-service:8083 \\
+                  --set config.transfer_service_url=http://notification-service:8088 \\
+                  --set config.exchange_service_url=http://accounts-service:8085
+
+                helm upgrade --install notification-service bank-app-helm-chart/charts/notification-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/notification-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=notification.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app
+
+                helm upgrade --install transfer-service bank-app-helm-chart/charts/transfer-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=${DOCKER_REGISTRY}/transfer-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=transfer.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                  --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                  --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app \\
+                  --set config.blocker_service_url=http://blocker-service:8082/check \\
+                  --set config.notification_service_url=http://notification-service:8087/notify \\
+                  --set config.account_service_url=http://accounts-service:8081/accounts \\
+                  --set config.exchange_service_url=http://exchange-service:8085
+                """
+            }
+        }
     }
 }
