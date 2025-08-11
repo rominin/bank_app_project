@@ -1,0 +1,108 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = credentials('DOCKER_REGISTRY')
+        DB_PASSWORD     = credentials('DB_PASSWORD')
+        GITHUB_USERNAME = credentials('GITHUB_USERNAME')
+        DB_NAME         = 'commondb'
+        DB_USER         = 'common_user'
+        IMAGE_TAG       = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Build & Unit Tests') {
+            parallel {
+                stage('Accounts Service') {
+                    steps {
+                        dir('accounts-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Blocker Service') {
+                    steps {
+                        dir('blocker-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Cash Service') {
+                    steps {
+                        dir('cash-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Exchange Generator Service') {
+                    steps {
+                        dir('exchange-generator-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Exchange Service') {
+                    steps {
+                        dir('exchange-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Front UI Service') {
+                    steps {
+                        dir('front-ui') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Notification Service') {
+                    steps {
+                        dir('notification-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+                stage('Transfer Service') {
+                    steps {
+                        dir('transfer-service') {
+                            sh 'mvn clean package'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh """
+                docker build -t ${DOCKER_REGISTRY}/accounts-service:${IMAGE_TAG} accounts-service
+                docker build -t ${DOCKER_REGISTRY}/blocker-service:${IMAGE_TAG} blocker-service
+                docker build -t ${DOCKER_REGISTRY}/cash-service:${IMAGE_TAG} cash-service
+                docker build -t ${DOCKER_REGISTRY}/exchange-generator-service:${IMAGE_TAG} exchange-generator-service
+                docker build -t ${DOCKER_REGISTRY}/exchange-service:${IMAGE_TAG} exchange-service
+                docker build -t ${DOCKER_REGISTRY}/front-ui:${IMAGE_TAG} front-ui
+                docker build -t ${DOCKER_REGISTRY}/notification-service:${IMAGE_TAG} notification-service
+                docker build -t ${DOCKER_REGISTRY}/transfer-service:${IMAGE_TAG} transfer-service
+                """
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                withCredentials([string(credentialsId: 'GHCR_TOKEN', variable: 'GHCR_TOKEN')]) {
+                    sh """
+                    echo \$GHCR_TOKEN | docker login ghcr.io -u ${GITHUB_USERNAME} --password-stdin
+                    docker push ${DOCKER_REGISTRY}/accounts-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/blocker-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/cash-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/exchange-generator-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/exchange-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/front-ui:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/notification-service:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/transfer-service:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+    }
+}
