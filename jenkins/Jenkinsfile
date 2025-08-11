@@ -104,5 +104,35 @@ pipeline {
                 }
             }
         }
+
+        stage('Install PostgreSQL to TEST') {
+            steps {
+                sh """
+                helm repo add bitnami https://charts.bitnami.com/bitnami
+                helm repo update
+
+                helm upgrade --install common-db bitnami/postgresql \\
+                  --version 14.2.3 \\
+                  --namespace test --create-namespace \\
+                  --set auth.database=${DB_NAME} \\
+                  --set auth.username=${DB_USER} \\
+                  --set auth.existingSecret=bank-app-common-db-postgresql \\
+                  --set primary.persistence.enabled=true \\
+                  --set primary.persistence.size=1Gi
+                """
+            }
+        }
+
+        stage('Create DB Secrets for TEST') {
+            steps {
+                sh """
+                kubectl create secret generic bank-app-common-db-postgresql \\
+                  --from-literal=password=${DB_PASSWORD} \\
+                  --from-literal=postgresql-password=${DB_PASSWORD} \\
+                  --from-literal=postgres-password=${DB_PASSWORD} \\
+                  -n test --dry-run=client -o yaml | kubectl apply -f -
+                """
+            }
+        }
     }
 }
