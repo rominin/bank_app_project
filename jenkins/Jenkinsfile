@@ -170,7 +170,7 @@ pipeline {
                   --set service.ports.http=8080 \\
                   --set ingress.enabled=true \\
                   --set ingress.ingressClassName=nginx \\
-                  --set ingress.hostname=keycloak.myapp.local \\
+                  --set ingress.hostname=keycloak.test.local \\
                   --set ingress.path=/ \\
                   --set ingress.pathType=ImplementationSpecific \\
                   --set keycloakConfigCli.enabled=true \\
@@ -319,6 +319,236 @@ pipeline {
                           --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
                           --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
                           --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.test.svc.cluster.local:8080/realms/bank-app \\
+                          --set config.blocker_service_url=http://blocker-service:8082/check \\
+                          --set config.notification_service_url=http://notification-service:8087/notify \\
+                          --set config.account_service_url=http://accounts-service:8081/accounts \\
+                          --set config.exchange_service_url=http://exchange-service:8085
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval for PROD') {
+            steps {
+                input message: 'Deploy to PROD environment?', ok: 'Yes, deploy'
+            }
+        }
+
+        stage('Install PostgreSQL to PROD') {
+            steps {
+                sh """
+                helm repo add bitnami https://charts.bitnami.com/bitnami
+                helm repo update
+
+                helm upgrade --install common-db bitnami/postgresql \\
+                  --version 14.2.3 \\
+                  --namespace prod --create-namespace \\
+                  --set auth.database=${DB_NAME} \\
+                  --set auth.username=${DB_USER} \\
+                  --set auth.existingSecret=bank-app-common-db-postgresql \\
+                  --set primary.persistence.enabled=true \\
+                  --set primary.persistence.size=1Gi
+                """
+            }
+        }
+
+        stage('Create DB and Auth Server resources for PROD') {
+            parallel {
+                stage('Create DB Secrets for PROD') {
+                    steps {
+                        sh """
+                        kubectl create secret generic bank-app-common-db-postgresql \\
+                          --from-literal=password=${DB_PASSWORD} \\
+                          --from-literal=postgresql-password=${DB_PASSWORD} \\
+                          --from-literal=postgres-password=${DB_PASSWORD} \\
+                          -n prod --dry-run=client -o yaml | kubectl apply -f -
+                        """
+                    }
+                }
+                stage('Create Keycloak Realm ConfigMap on PROD') {
+                    steps {
+                        sh """
+                        kubectl create configmap bank-app-keycloak-realm \\
+                          --from-file=realm-export.json=./bank-app-helm-chart/files/realm-export.json \\
+                          -n prod --dry-run=client -o yaml | kubectl apply -f -
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Install Keycloak to PROD') {
+            steps {
+                sh """
+                helm repo add bitnami https://charts.bitnami.com/bitnami
+                helm repo update
+
+                helm upgrade --install keycloak bitnami/keycloak \\
+                  --version 24.8.1 \\
+                  --namespace prod --create-namespace \\
+                  --set auth.createAdminUser=true \\
+                  --set auth.adminUser=admin \\
+                  --set auth.adminPassword=admin \\
+                  --set postgresql.enabled=true \\
+                  --set postgresql.auth.username=bn_keycloak \\
+                  --set postgresql.auth.password=mySuperSecretPass \\
+                  --set postgresql.auth.database=bitnami_keycloak \\
+                  --set postgresql.primary.persistence.enabled=true \\
+                  --set postgresql.primary.persistence.size=1Gi \\
+                  --set service.type=ClusterIP \\
+                  --set service.ports.http=8080 \\
+                  --set ingress.enabled=true \\
+                  --set ingress.ingressClassName=nginx \\
+                  --set ingress.hostname=keycloak.prod.local \\
+                  --set ingress.path=/ \\
+                  --set ingress.pathType=ImplementationSpecific \\
+                  --set keycloakConfigCli.enabled=true \\
+                  --set keycloakConfigCli.existingConfigmap=bank-app-keycloak-realm \\
+                  --set extraEnvVars[0].name=KC_HOSTNAME \\
+                  --set extraEnvVars[0].value=keycloak.prod.svc.cluster.local \\
+                  --set extraEnvVars[1].name=KC_HOSTNAME_STRICT \\
+                  --set-string extraEnvVars[1].value=true
+                """
+            }
+        }
+
+        stage('Helm Deploy to PROD') {
+            parallel {
+                stage('Accounts Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install accounts-service bank-app-helm-chart/charts/accounts-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/accounts-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=accounts.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                          --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app \\
+                          --set config.notification_service_url=http://notification-service:8087/notify
+                        """
+                    }
+                }
+                stage('Blocker Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install blocker-service bank-app-helm-chart/charts/blocker-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/blocker-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=blocker.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app
+                        """
+                    }
+                }
+                stage('Cash Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install cash-service bank-app-helm-chart/charts/cash-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/cash-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=cash.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app \\
+                          --set config.blocker_service_url=http://blocker-service:8082/check \\
+                          --set config.notification_service_url=http://notification-service:8087/notify \\
+                          --set config.account_service_url=http://accounts-service:8081/accounts
+                        """
+                    }
+                }
+                stage('Exchange Generator Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install exchange-generator-service bank-app-helm-chart/charts/exchange-generator-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/exchange-generator-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=exchange-generator.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                          --set config.exchange_service_url=http://exchange-service:8085/rates
+                        """
+                    }
+                }
+                stage('Exchange Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install exchange-service bank-app-helm-chart/charts/exchange-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/exchange-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=exchange.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app
+                        """
+                    }
+                }
+                stage('Front UI Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install front-ui bank-app-helm-chart/charts/front-ui-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/front-ui \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=front-ui.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                          --set config.account_service_profile_url=http://accounts-service:8081/profiles \\
+                          --set config.account_service_account_url=http://accounts-service:8081/accounts \\
+                          --set config.account_service_general_url=http://accounts-service:8081 \\
+                          --set config.cash_service_url=http://cash-service:8083 \\
+                          --set config.transfer_service_url=http://transfer-service:8088 \\
+                          --set config.exchange_service_url=http://exchange-service:8085
+                        """
+                    }
+                }
+                stage('Notification Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install notification-service bank-app-helm-chart/charts/notification-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/notification-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=notification.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.database_url=jdbc:postgresql://common-db-postgresql:5432/commondb \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app
+                        """
+                    }
+                }
+                stage('Transfer Service') {
+                    steps {
+                        sh """
+                        helm upgrade --install transfer-service bank-app-helm-chart/charts/transfer-service \\
+                          --namespace prod --create-namespace \\
+                          --set image.repository=${DOCKER_REGISTRY}/transfer-service \\
+                          --set image.tag=${IMAGE_TAG} \\
+                          --set ingress.enabled=true \\
+                          --set ingress.hosts[0].host=transfer.prod.local \\
+                          --set ingress.hosts[0].paths[0].path="/" \\
+                          --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific" \\
+                          --set config.spring_security_oauth2_client_provider_keycloak_token_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token \\
+                          --set config.spring_security_oauth2_resourceserver_jwt_issuer_uri=http://keycloak.prod.svc.cluster.local:8080/realms/bank-app \\
                           --set config.blocker_service_url=http://blocker-service:8082/check \\
                           --set config.notification_service_url=http://notification-service:8087/notify \\
                           --set config.account_service_url=http://accounts-service:8081/accounts \\
