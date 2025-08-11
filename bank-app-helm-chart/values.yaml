@@ -87,7 +87,7 @@ notification-service:
         paths:
           - path: /
             pathType: ImplementationSpecific
-  # Database connection details passed to notification-service configmap
+  # Database connection details and other envs passed to notification-service configmap
   config:
     # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
     database_url: "jdbc:postgresql://{{ .Release.Name }}-common-db:5432/commondb"
@@ -97,52 +97,33 @@ notification-service:
     # database_password_secret_key: "postgresql-password" # Key within the secret
     spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
   #    spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.bank-app-develop.svc.cluster.local:8080/realms/bank-app"
-
+  # Database connection details passed to notification-secret secret
   secret:
     enabled: true
     name: notification-secret
     data:
       SPRING_DATASOURCE_PASSWORD: postgres
 
-# Configuration for the exchange-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t exchange-service:0.0.1-SNAPSHOT .` in exchange-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 exchange-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: exchange-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: exchange-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8085
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: exchange.myapp.local # Use global domain or specific
+      - host: exchange.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
-  # Database connection details passed to exchange-service configmap
   config:
-    # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
     database_url: "jdbc:postgresql://{{ .Release.Name }}-common-db:5432/commondb"
-    # Secret reference for password is more secure
     database_username: "common_user"
-    # database_password_secret: "{{ .Release.Name }}-common-db-postgresql" # Reference to secret created by DB chart
-    # database_password_secret_key: "postgresql-password" # Key within the secret
     spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
 
   secret:
@@ -151,38 +132,23 @@ exchange-service:
     data:
       SPRING_DATASOURCE_PASSWORD: postgres
 
-# Configuration for the exchange-generator-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t exchange-generator-service:0.0.1-SNAPSHOT .` in exchange-generator-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 exchange-generator-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: exchange-generator-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: exchange-generator-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8084
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: exchange-generator.myapp.local # Use global domain or specific
+      - host: exchange-generator.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
-  # Some details passed to exchange-generator-service configmap
   config:
     spring_security_oauth2_client_provider_keycloak_token_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token"
     exchange_service_url: "http://bank-app-exchange-service.{{ .Release.Namespace }}.svc.cluster.local:8085/rates"
@@ -194,68 +160,40 @@ exchange-generator-service:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_ID: exchange-generator-service_m2m
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_GENERATOR_SERVICE_CLIENT_SECRET: juV1s9b0KlrXQfs5QoQAjhsTnItkToxw
 
-# Configuration for the blocker-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t blocker-service:0.0.1-SNAPSHOT .` in blocker-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 blocker-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: blocker-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: blocker-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8082
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: blocker.myapp.local # Use global domain or specific
+      - host: blocker.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
   config:
     spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
 
-# Configuration for the transfer-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t transfer-service:0.0.1-SNAPSHOT .` in transfer-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 transfer-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: transfer-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: transfer-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8088
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: transfer.myapp.local # Use global domain or specific
+      - host: transfer.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
@@ -274,34 +212,20 @@ transfer-service:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TRANSFER_SERVICE_CLIENT_ID: transfer-service_m2m
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TRANSFER_SERVICE_CLIENT_SECRET: WT1ALa0PSEiUhNGwbZsCtvYGXasTGCJz
 
-# Configuration for the cash-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t cash-service:0.0.1-SNAPSHOT .` in cash-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 cash-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: cash-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: cash-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8083
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: cash.myapp.local # Use global domain or specific
+      - host: cash.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
@@ -319,44 +243,26 @@ cash-service:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_ID: cash-service_m2m
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET: ZkXS0uBiuTdDkUl0iONVxlWZkLN2E3oR
 
-# Configuration for the accounts-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t accounts-service:0.0.1-SNAPSHOT .` in accounts-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 accounts-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: accounts-service # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: accounts-service
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8081
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: accounts.myapp.local # Use global domain or specific
+      - host: accounts.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
   config:
-    # --- CORRECTED DB URL --- Using '<ReleaseName>-<Alias>' service name convention
     database_url: "jdbc:postgresql://{{ .Release.Name }}-common-db:5432/commondb"
-    # Secret reference for password is more secure
     database_username: "common_user"
-    # database_password_secret: "{{ .Release.Name }}-common-db-postgresql" # Reference to secret created by DB chart
-    # database_password_secret_key: "postgresql-password" # Key within the secret
     spring_security_oauth2_resourceserver_jwt_issuer_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app"
     spring_security_oauth2_client_provider_keycloak_token_uri: "http://bank-app-keycloak.{{ .Release.Namespace }}.svc.cluster.local:8080/realms/bank-app/protocol/openid-connect/token"
     notification_service_url: "http://bank-app-notification-service.{{ .Release.Namespace }}.svc.cluster.local:8087/notify"
@@ -370,34 +276,20 @@ accounts-service:
       SPRING_DATASOURCE_PASSWORD: postgres
       SECURITY_JWT_SECRET: wj38dKSk4Xpe49TrsTcv82yNvmz1qKwLZnUp1fZ5U7A=
 
-# Configuration for the front-ui-service subchart
-# NOTE: For local development (Minikube/Kind/Docker Desktop), build the image locally
-# (e.g., `docker build -t front-ui-service:0.0.1-SNAPSHOT .` in front-ui-service dir)
-# and ensure your K8s cluster can access local images (e.g., `minikube docker-env` or `kind load docker-image ...`).
 front-ui-service:
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    # --- REVERTED TO LOCAL REPO ---
-    repository: front-ui # Removed registry prefix
-    # Overrides the image tag whose default is the chart appVersion.
+    repository: front-ui
     tag: "0.0.1-SNAPSHOT"
-    # This sets the pull policy for images.
-    pullPolicy: IfNotPresent # Use IfNotPresent for local images
-    # -----------------------------
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+    pullPolicy: IfNotPresent
   service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
-    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 8086
-  # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
-    className: "nginx" # Specify your ingress controller class
+    className: "nginx"
     hosts:
-      - host: front-ui.myapp.local # Use global domain or specific
+      - host: front-ui.myapp.local
         paths:
           - path: /
             pathType: ImplementationSpecific
