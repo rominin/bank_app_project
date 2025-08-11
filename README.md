@@ -1,22 +1,70 @@
 # Инструкция
 
-## Запуск в докере инфрастуктуры и сервисов
+## Запуск сервисов и инфрастуктуры в докере 
 1. Соберите проект (**mvn clean package -DskipTests=true**). Есть возможность также прогнать тесты, при этом не должно быть поднятых
 контейнеров. Также нужно удостовериться, что для контрактных тестов сначала генерируются стабы, а потом вызываются зависимые тесты.
 2. Поднимите keycloak, postgresql **docker compose up keycloak db**, дождитесь успешного запуска.
 3. Поднимите микросервисы **docker-compose up --build**.
-4. Пользуйтесь приложением.
+4. Пользуйтесь приложением. Главная страница - http://localhost:8086/home
 
-## Запуск в IDE
+## Запуск сервисов в IDE, инфраструктуры в докере 
 1. Перейдите в директорию local-setup **cd local-setup**.
 2. Поднимите keycloak, postgresql **docker compose up keycloak db**, дождитесь успешного запуска.
 3. Запустите микросервисы в любой удобной IDE.
-4. Пользуйтесь приложением.
+4. Пользуйтесь приложением. Главная страница - http://localhost:8086/home
 
-# Главная страница - http://localhost:8086/home
+## Запуск флота в локальном k8s кластере вручную (развёртывание микросервисов в Kubernetes с использованием Helm-чартов)
+1. Поднимите виртуальную машину с k8s. Например, colima: ```colima start --cpu 4 --memory 6 --kubernetes --network-address --profile bank_app```
+2. В корневой папке проекта соберите проект: ```mvn clean package -DskipTests=true```
+3. Соберите образы для сервисов:
+```
+docker build -t accounts-service:0.0.1-SNAPSHOT ./accounts-service && \
+docker build -t blocker-service:0.0.1-SNAPSHOT ./blocker-service && \
+docker build -t cash-service:0.0.1-SNAPSHOT ./cash-service && \
+docker build -t exchange-generator-service:0.0.1-SNAPSHOT ./exchange-generator-service && \
+docker build -t exchange-service:0.0.1-SNAPSHOT ./exchange-service && \
+docker build -t front-ui:0.0.1-SNAPSHOT ./front-ui && \
+docker build -t notification-service:0.0.1-SNAPSHOT ./notification-service && \
+docker build -t transfer-service:0.0.1-SNAPSHOT ./transfer-service
+```
+Важно: проверьте, что контекст докера указывает на вашу виртуальную машину: ```docker context ls```
+должен помечать звездочкой контекст связанный с VM, например, colima.
+4. Создайте ингресс контроллер: ```kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml```
+5. Перейдите в папку с helm чартами и обновите зависимости: ```cd bank-app-helm-chart```, ```helm dependency update .```
+6. Создайте неймспейс: ```kubectl create namespace bank-app-develop```
+7. Создайте секрет для базы данных: 
+```
+kubectl create secret generic bank-app-common-db-postgresql \
+     --from-literal=password=postgres \
+     --from-literal=postgresql-password=postgres \
+     --from-literal=postgres-password=postgres \
+     -n bank-app-develop
+```
+8. Установите helm релиз: ```helm upgrade --install bank-app ./ --namespace bank-app-develop```
+9. Запустите тесты на helm чарты: ```helm test bank-app -n bank-app-develop```
+10. Узнайте INTERNAL-IP через ```kubectl get nodes -o wide``` и запишите маппинг адресов ```sudo nano /etc/hosts``` в 
+таком виде: ```ЗНАЧЕНИЕ_INTERNAL_IP http://front-ui.myapp.local```
+11. Когда релиз будет завершен и поды поднимутся, можно проверить healthcheck-эндпойнт ```http://front-ui.myapp.local/actuator/health```
+и пользоваться приложением. Главная страница - http://front-ui.myapp.local/home
 
-# Задание
-Написать микросервисное приложение «Банк» с использованием Spring Boot и паттернов микросервисной архитектуры.
+## Запуск флота в локальном k8s кластере из Jenkins (непрерывная интеграция и доставка микросервисов с помощью Jenkins) 
+1. Склонируйте проект. Запушьте проект в свой Github репозиторий.
+2. Поднимите виртуальную машину с k8s. Например, colima: ```colima start --cpu 6 --memory 10 --kubernetes --network-address --profile bank_app```
+3. Создайте ингресс контроллер: ```kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml```
+4. Скопируйте содержимое своего файла конфигурации k8s **~/.kube/config** в файл проекта **jenkins_kubeconfig.yaml**.
+5. Актуализируйте jenkins/.env файл проекта согласно своим данным.
+6. Из папки jenkins запустите контейнер с Jenkins: ```docker compose up --build```
+7. Перейдите на главную страницу Jenkins: localhost:8080. Посмотрите информацию о пайплайне, сборках.
+Сборка будет запущена автоматически, но можно запустить по желанию. Для удобства просматривайте прогресс в Blue Ocean.
+8. Подтвердите, хотите ли деплоить на прод. Если нет, то микросервисы и инфрастуктура будут созданы только в неймспейсе test,
+иначе также и в prod.
+9. Аналогично шагу 10 из предыдущего пункта добавьте маппинг на http://front-ui.test.local и/или http://front-ui.prod.local.
+10. По желанию проверьте health эндпойнты. Пользуйтесь приложением - http://front-ui.test.local/home или http://front-ui.prod.local/home
+
+# Задание❗️
+Написать микросервисное приложение «Банк» с использованием Spring Boot и паттернов микросервисной архитектуры.✅
+Реализовать развёртывание микросервисов в Kubernetes с использованием Helm-чартов.
+Настроить непрерывную интеграцию и доставку микросервисов с помощью Jenkins.
 
 # Требования к приложению
 1) Микросервисы приложения написаны на Spring Boot.
