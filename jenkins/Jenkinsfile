@@ -134,5 +134,50 @@ pipeline {
                 """
             }
         }
+
+        stage('Create Keycloak Realm ConfigMap on TEST') {
+            steps {
+                sh """
+                kubectl create configmap bank-app-keycloak-realm \\
+                  --from-file=realm-export.json=./bank-app-helm-chart/files/realm-export.json \\
+                  -n test --dry-run=client -o yaml | kubectl apply -f -
+                """
+            }
+        }
+
+        stage('Install Keycloak to TEST') {
+            steps {
+                sh """
+                helm repo add bitnami https://charts.bitnami.com/bitnami
+                helm repo update
+
+                helm upgrade --install keycloak bitnami/keycloak \\
+                  --version 24.8.1 \\
+                  --namespace test --create-namespace \\
+                  --set auth.createAdminUser=true \\
+                  --set auth.adminUser=admin \\
+                  --set auth.adminPassword=admin \\
+                  --set postgresql.enabled=true \\
+                  --set postgresql.auth.username=bn_keycloak \\
+                  --set postgresql.auth.password=mySuperSecretPass \\
+                  --set postgresql.auth.database=bitnami_keycloak \\
+                  --set postgresql.primary.persistence.enabled=true \\
+                  --set postgresql.primary.persistence.size=1Gi \\
+                  --set service.type=ClusterIP \\
+                  --set service.ports.http=8080 \\
+                  --set ingress.enabled=true \\
+                  --set ingress.ingressClassName=nginx \\
+                  --set ingress.hostname=keycloak.myapp.local \\
+                  --set ingress.path=/ \\
+                  --set ingress.pathType=ImplementationSpecific \\
+                  --set keycloakConfigCli.enabled=true \\
+                  --set keycloakConfigCli.existingConfigmap=bank-app-keycloak-realm \\
+                  --set extraEnvVars[0].name=KC_HOSTNAME \\
+                  --set extraEnvVars[0].value=keycloak.test.svc.cluster.local \\
+                  --set extraEnvVars[1].name=KC_HOSTNAME_STRICT \\
+                  --set-string extraEnvVars[1].value=true
+                """
+            }
+        }
     }
 }
